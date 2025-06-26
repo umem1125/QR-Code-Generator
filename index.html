@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced QR Code Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+    <style>
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .qr-container {
+            transition: all 0.3s ease;
+        }
+        
+        .qr-container:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .glow-effect {
+            box-shadow: 0 0 20px rgba(0, 123, 255, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen p-4 md:p-8">
+    <div class="max-w-3xl mx-auto">
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-bold text-blue-600 mb-2">QR Code Generator</h1>
+            <p class="text-gray-600">Convert any text or code into a scannable QR code instantly</p>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <div class="flex flex-col md:flex-row gap-6">
+                <div class="flex-1">
+                    <div class="mb-4">
+                        <label for="qrText" class="block text-sm font-medium text-gray-700 mb-2">Enter your text or code:</label>
+                        <input 
+                            type="text" 
+                            id="qrText" 
+                            value="012FE000"
+                            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                            placeholder="Enter text to encode..." 
+                        />
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Size:</label>
+                        <div class="flex items-center gap-4">
+                            <div class="flex-1">
+                                <input 
+                                    type="range" 
+                                    id="qrSize" 
+                                    min="100" 
+                                    max="500" 
+                                    value="200"
+                                    class="w-full"
+                                    oninput="updateSizeValue()"
+                                >
+                            </div>
+                            <span id="sizeValue" class="font-medium text-blue-600">200px</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <button 
+                            onclick="generateQR()"
+                            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-105 active:scale-95 shadow-md"
+                        >
+                            Generate QR Code
+                        </button>
+                    </div>
+                    
+                    <!-- Sample inputs -->
+                    <div class="mt-6">
+                        <p class="text-sm text-gray-500 mb-2">Try these samples:</p>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="useSample('012FE000')" class="px-3 py-1 bg-blue-100 text-blue-600 rounded-md text-sm hover:bg-blue-200">012FE000</button>
+                            <button onclick="useSample('Hello World')" class="px-3 py-1 bg-blue-100 text-blue-600 rounded-md text-sm hover:bg-blue-200">Hello World</button>
+                            <button onclick="useSample('https://google.com')" class="px-3 py-1 bg-blue-100 text-blue-600 rounded-md text-sm hover:bg-blue-200">Google</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex-1 flex flex-col items-center justify-center">
+                    <div id="qrResult" class="qr-container bg-white p-6 rounded-lg border border-gray-200 mb-4">
+                        <p class="text-gray-400 text-center">Your QR code will appear here</p>
+                    </div>
+                    
+                    <div class="flex gap-3">
+                        <button 
+                            id="downloadBtn"
+                            onclick="downloadQR()"
+                            disabled
+                            class="bg-white border border-blue-600 text-blue-600 px-4 py-2 rounded-lg opacity-50 cursor-not-allowed transition-all hover:bg-blue-50"
+                            title="Generate a QR code first"
+                        >
+                            Download
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-center text-xs text-gray-500 mt-8">
+            <p>QR codes can be scanned by any smartphone camera app</p>
+        </div>
+    </div>
+
+    <script>
+        let qrCodeInstance = null;
+        
+        function generateQR() {
+            const text = document.getElementById('qrText').value.trim();
+            const size = parseInt(document.getElementById('qrSize').value);
+            
+            if (!text) {
+                alert('Please enter some text to generate a QR code');
+                return;
+            }
+            
+            // Clear previous QR code
+            const qrResult = document.getElementById('qrResult');
+            qrResult.innerHTML = '';
+            
+            // Create new QR code
+            qrCodeInstance = new QRCode(qrResult, {
+                text: text,
+                width: size,
+                height: size,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+            
+            // Enable download button and apply effects
+            document.getElementById('downloadBtn').disabled = false;
+            document.getElementById('downloadBtn').classList.remove('opacity-50', 'cursor-not-allowed');
+            qrResult.classList.add('fade-in', 'glow-effect');
+            
+            // Remove glow effect after animation
+            setTimeout(() => {
+                qrResult.classList.remove('glow-effect');
+            }, 1000);
+        }
+        
+        function updateSizeValue() {
+            document.getElementById('sizeValue').textContent = document.getElementById('qrSize').value + 'px';
+        }
+        
+        function downloadQR() {
+            if (!qrCodeInstance) return;
+            
+            const canvas = document.querySelector('#qrResult canvas');
+            if (!canvas) return;
+            
+            const a = document.createElement('a');
+            a.href = canvas.toDataURL('image/png');
+            a.download = `qr-code-${document.getElementById('qrText').value}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+        
+        function useSample(text) {
+            document.getElementById('qrText').value = text;
+            generateQR();
+        }
+        
+        // Generate QR code on page load with the default value
+        window.onload = function() {
+            generateQR();
+        };
+    </script>
+</body>
+</html>
+
